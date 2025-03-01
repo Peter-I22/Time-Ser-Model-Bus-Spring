@@ -1,0 +1,94 @@
+---
+title: "HW 4"
+author: "Peter Ishak"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+#Q1
+Prices_Of_Gold <- read_excel(Users/peter/Downloads/archive /Prices_Of_Gold.xlsx)
+View(Prices_Of_Gold)  
+
+library(fpp)
+library(fpp2)
+library(TTR)
+attributes(Prices_Of_Gold)
+
+gold_ts <- ts(Prices_Of_Gold$`United States(USD)`, start = c(1991,1), frequency = 12)
+plot(gold_ts)
+acf(gold_ts)
+stl_decomp <- stl(gold_ts,s.window ="periodic")
+plot(stl_decomp)
+attributes(stl_decomp)
+
+seasadj(stl_decomp)
+
+plot(gold_ts)
+lines(seasadj(stl_decomp), col="Red")
+f_stl <- forecast(stl_decomp)
+f_stl <- forecast(stl_decomp,h=15)
+f_stl
+
+plot(f_stl)
+decomp_elec <- decompose(gold_ts)
+attributes(decomp_elec)
+
+seasadj(decomp_elec)
+
+mean_forecast <- meanf(gold_ts,5)
+plot(mean_forecast)
+naive_forecast <- naive(gold_ts,5)
+plot(naive_forecast)
+rwf_forecast <- rwf(gold_ts,5)
+rwf_forecast <- rwf(gold_ts,5, drift=TRUE)
+snaive_forecast <- snaive(gold_ts,5)
+MA5_forecast <- ma(gold_ts,order=5)
+MA9_forecast <- ma(gold_ts,order=9)
+plot(mean_forecast)
+lines(naive_forecast$mean,col="red")
+lines(rwf_forecast$mean,col="green")
+lines(snaive_forecast$mean,col="black")
+lines(MA5_forecast,col="Pink")
+lines(MA9_forecast,col="Blue")
+attributes(naive_forecast)
+
+ets_forecast <- ets(gold_ts)
+plot(ets_forecast)
+attributes(ets_forecast)
+
+ets_forecast$mse
+
+HW_forecast <- HoltWinters(gold_ts)
+plot(HW_forecast)
+
+accuracy(snaive_forecast) 
+
+accuracy(f_stl)
+ 
+accuracy(rwf_forecast)
+
+accuracy(ets_forecast)
+
+accuracy(mean_forecast)
+
+accuracy(HW_forecast)
+
+HW_forecast$alpha
+
+HW_forecast$beta
+
+HW_forecast$gamma
+
+# The naive forecast takes into account the last point in the dataset. It assumes that the price if gold will close to the 2021 prices. 
+# The rwf_forecast observes the last observed value and includes a drift. This model is very good for unpredictable data like the price of gold each year.
+# The moving average forecast takes into account selected points in the dataset that smooths past data. I used the past 5 and 9 data observations.
+# The mean average forecast takes the average of the whole data and assumes that the future will be similar to the historical average.
+# The Holt-Winters model observes exponential smoothing that takes into account level, trend and seasonality. The Alpha is .8365, which means the model puts more weight on recent data and adjusts forecasts quickly. The beta is .0084, which means that the trend is updated very slowly, and the trend is fairly stable. The gamma is .4409 which means that the model moderately updates the seasonality pattern over time and that there is less seasonality.
+# The STL model measures seasonal, trend, and remainder. 
+#The decompostion model (ETS) breaks down the data into error, trend and seasonality.
+#The 6 models I tested were f-stl, rwf_forecast, ets_forecast, Holt-Winters,Naiive forecast, and mean_forecast. The best model would the ETS model because it has the lowest MAPE which is best for accuracy and the lowest MASE which shows more stable and reliable data. The best model for the least autocorrelation would be f_stl model because it has an ACF1 of (-.00006) which is the closest to zero.
+#We can see through the models that there was an upward trend of the prices of gold until 2010, the prices dropped and then picked up again in 2020. From looking at the seasonality graph, we can see nonconsistent seasonal patterns which means that there is little seasonality. The ACF model shows a constent decress which shows that there is not a strong seasonality and that the past values have strong influence on future values.  The forcast predicts that prices of gold would pick up a little and rise. We can also notice that 2015 to 2020 that there was some noise or residual. The price of gold dipped down those years and picked up in 2021. 
+```
+
+
