@@ -1,0 +1,104 @@
+---
+title: "Practice Midterm"
+author: "Peter Ishak"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+library(fpp2)
+
+my_ts <- arrivals[,4] 
+
+plot(my_ts)
+#We notice that the data is moving in an upright direction. The data starts in 1980 and contimes moving up till the year 2010.
+summary(my_ts)
+boxplot(my_ts)
+#We can see that lowest value is 23.72 and the highest value is 136.09. In the 1st quartile, 25% if values are below 63.95 and in the 3rd quartile, 75% of the values are below 108.98. The median is 85.88 and the mean is 84.85 which means that there might be some lower values that are dragging the average down.
+
+#Decompose
+stl_decomp <- stl(my_ts, s.window = "periodic")
+plot(stl_decomp)
+acf(my_ts, main = "ACF of Time Series")
+#From looking at the data, we can tell that there is seasonality from looking at the graph, we can see that there is a trend happening. 
+
+
+decompose_decomp <- decompose(my_ts)
+decompose_decomp # to find if decomposition additive or multiplicative
+#Q1 = 6.784749, Q2 = -7.969292, Q3 = -4.717247, Q4 = 5.901790
+#Q2 is the lowest and Q1 is the highest 
+#I think that Q1 is always the highest because many people will travel to Australia during the first quarter of the year because prices are usually cheaper and the weather is better. The second quarter might be the lowest because its Christmas time and people will travel to be with their families more than going out for vacation. 
+
+decomp <- decompose(my_ts, type = "additive")
+seasonally_adjusted <- my_ts - decomp$seasonal
+lines(seasonally_adjusted, col = "red", lwd = 2)
+
+#Naiive data
+naive_forecast <- naive(my_ts,5)
+plot(naive_forecast)
+#The plot indicates that after 2010, the arivals will not increase by much and stay around 100 arrivals.
+hist(naive_forecast$mean)
+#The histogram shows that from 100 to 120 arivals have the highest frequency of 5.
+
+normal_model <- ets(my_ts)
+fitted_normal <- fitted(normal_model)
+naive_model <- naive(my_ts)
+fitted_naive <- fitted(naive_model)
+residuals_normal <- residuals(normal_model)
+plot(fitted_normal, residuals_normal, 
+      main = "Fitted Values vs. Residuals", 
+      xlab = "Fitted Values", ylab = "Residuals", 
+      col = "blue", pch = 16)
+#The plot indicates that the data moves in a random pattern, which shows that the model is well specified.
+ 
+actual_values <- as.numeric(my_ts)
+residuals_naive <- residuals(naive_model)
+ 
+residuals_normal <- residuals(normal_model)
+ 
+ plot(actual_values, residuals_naive, 
+      main = "Naïve Model: Actual vs Residuals", 
+      xlab = "Actual Values", ylab = "Residuals", 
+      col = "blue", pch = 16)
+ #This plot indicates our residuals mostly land in the zero range, which shows that our data captures the trend, although there are some outliers which show non-linearity. 
+
+Acf(residuals(naive_model), main = "ACF of Residuals Naive Model")
+Acf(residuals(normal_model), main = "ACF of Residuals Normal Model")
+#We can see that in Naive Model, the residuals fall outside the blue band showing that there is autocorrelation and that the model failed to capture all patterns in the data. In the Normal Model, the residuals fall inside the blue lines which show that they behave like white noise and the model is appropriate.
+
+accuracy(normal_model)
+
+accuracy(naive_model)
+
+accuracy(naive_forecast)
+
+ets_forecast <- ets(my_ts)
+plot(ets_forecast)
+attributes(ets_forecast)
+
+HW_model <- HoltWinters(my_ts)
+
+fitted_HW <- fitted(HW_model)
+
+accuracy(fitted_HW, my_ts)
+
+accuracy(ets_forecast)
+
+plot(HW_model)
+
+HW_forecast <- forecast(HW_model, h=4)
+ plot(HW_forecast)
+
+ets_forecast <- forecast(ets_forecast, h=4)
+plot(ets_forecast)
+# The Holt-Winters forecast is very good and more accurate than the other models because compared to the ets_model, HoltWinters has a lower ME, MPE and MAPE. The ETS model has a lower RMSE and MAE. Both RMSE and MAE are very close to each other in both models, but Holt-Winters has -.54 Mean Error which proves that this model is more accurate than the the ETS model. This model measures data for the next year and it predicts that the values will go up and then dip down and then rise up again. The ETS model predicts a similar forecast with slightly bigger numbers.
+
+
+
+
+
+
+
+
+```
+
