@@ -1,0 +1,60 @@
+---
+title: "HW 5"
+author: "Peter Ishak"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+
+
+
+Prices_of_gold <- read.csv("~/Downloads/Prices_of_gold.csv")
+
+library(ffp)
+library(fpp2)
+library(forecast)
+
+
+gold_ts <- ts(Prices_of_gold$United.States.USD., start = c(1991,1),end = c(2015,12), frequency =12)
+
+plot(gold_ts)
+
+ndiffs(gold_ts)
+tsdisplay(gold_ts)
+gold_tsdiff1 <- diff(gold_ts, differences=1)
+plot(gold_tsdiff1) 
+tsdisplay(gold_tsdiff1)
+auto_fit <- auto.arima(gold_ts, trace=TRUE, stepwise = FALSE)
+auto_fit
+attributes(auto_fit)
+plot(forecast(auto_fit,h=5,level=c(99.5)))
+Acf(auto_fit$residuals)
+Box.test(residuals(auto_fit), lag=20, type="Ljung")
+plot.ts(residuals(auto_fit))
+hist(auto_fit$residuals)
+tsdiag(auto_fit)
+# The ARIMA model shows that there is no trend and accounts for short-term dependencies, forecast errors, and seasonality. The MA term is .1887 which shows that the model is adjusting based on past errors. The seasonal AR is 2 which shows that the model uses the past 2 values in the series. The best ARIMA model is (2,1,2)(0,0,1)[12] which means that the model uses past values, the data is non-stationary so we take the first difference, the model has 2 lagged error terms which means past forecast errors influence the future values. The seasonal components show that there is 0 past seasonal lags which shows it has no seasonal AR, the model did not require seasonal differencing, but the model has 1 seasonal MA term which takes into account the error from the one year ago, and the [12] suggests that there is annual seasonality meaning that the gold prices must follow a 1 year cycle. The sigma is really high showing that there can be a big error variance in the dataset. 
+
+#Residual Analysis
+Acf(auto_fit$residuals)
+Box.test(residuals(auto_fit), lag=20, type="Ljung")
+plot.ts(residuals(auto_fit))
+hist(auto_fit$residuals) 
+tsdiag(auto_fit)
+
+#Forecast
+
+forecasted_values <- forecast(auto_fit, h = 5)
+plot(forecasted_values)
+
+#Accuracy
+
+accuracy(auto_fit)
+
+
+
+
+
+```
+
